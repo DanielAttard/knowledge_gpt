@@ -98,11 +98,11 @@ dynamic_prompt_template = FewShotPromptTemplate(
 )
 
 #print(dynamic_prompt_template.format(query="How do birds fly?"))
-print(openai(
-    dynamic_prompt_template.format(
-        query="How do birds fly?"
-    )
-))
+# print(openai(
+#     dynamic_prompt_template.format(
+#         query="How do birds fly?"
+#     )
+# ))
 
 query = """If I am in America, and I want to call someone in another country, I'm
 thinking maybe Europe, possibly western Europe like France, Germany, or the UK,
