@@ -1,5 +1,14 @@
 # flake8: noqa
+from langchain.llms import OpenAI
+
 from langchain.prompts import PromptTemplate
+
+
+# initialize the models
+openai = OpenAI(
+    model_name="text-davinci-003",
+    openai_api_key="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"
+)
 
 ## Use a shorter template to reduce the number of tokens in the prompt
 template = """Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES"). 
@@ -42,3 +51,14 @@ STUFF_PROMPT = PromptTemplate(
     template=template, 
     input_variables=["summaries", "question"]
 )
+
+# query = "What is the meaning of life?"
+
+# print(STUFF_PROMPT(query=query))
+
+# print(openai(
+#     STUFF_PROMPT.format(
+#         template=template, 
+#         input_variables=["summaries", "question"]
+#     )
+# ))

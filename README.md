@@ -278,3 +278,14 @@ Sasmitha Manathunga, 12:11 PM
 Well, buying me a coffee is always appreciated😊: https://www.buymeacoffee.com/mmz001
 
 
+# DAN SUMMARY NOTES:
+- make sure PIP is installed globally by running `pip install poetry`
+- create new virtual env with `python3 -m venv .venv`
+- activate the virtua env with `.venv\Scripts\activate`
+- install Poetry dependencies into  virtual env with `poetry install`
+- now you can run the code with `poetry run main.py` or `streamlit run main.py` 
+
+## OpenAI Key
+**sk-** 
+**y8U4ICpp3q2jkAECvqTFT3BlbkFJCK1VWmRYzcB7tM88FmUR**
+

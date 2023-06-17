@@ -14,7 +14,6 @@ def sidebar():
             "1. Enter your [OpenAI API key](https://platform.openai.com/account/api-keys) below🔑\n"  # noqa: E501
             "2. Upload a pdf, docx, or txt file📄\n"
             "3. Ask a question about the document💬\n"
-            "**:blue[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]**"            
         )
         api_key_input = st.text_input(
             "OpenAI API Key", # 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
