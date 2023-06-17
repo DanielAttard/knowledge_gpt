@@ -19,8 +19,8 @@ def clear_submit():
     st.session_state["submit"] = False
 
 
-st.set_page_config(page_title="PropertyTaxGPT", page_icon="📖", layout="wide")
-st.header("💸PropertyTaxGPT")
+st.set_page_config(page_title="ONARB-GPT", page_icon="📖", layout="wide")
+st.header("💸ONARB-GPT")
 
 sidebar()
 

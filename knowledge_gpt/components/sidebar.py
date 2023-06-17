@@ -29,10 +29,10 @@ def sidebar():
         st.markdown("---")
         st.markdown("# About")
         st.markdown(
-            "💸PropertyTaxGPT allows you to ask questions about your "
-            "documents and get accurate answers with instant citations. "
+            "💸ONARB-GPT allows you to ask questions about ARB Decisions "
+            "and get accurate answers with instant citations. "
         )
-        st.markdown("Made by [me](https://twitter.com/ontario_lawyer). File an [RFR](https://PropertyTax.ca) ")
-        st.markdown("---")
+        st.markdown("Made by an [Ontario Lawyer](https://twitter.com/ontario_lawyer).")
+        #st.markdown("---")
 
-        faq()
+        # faq()
