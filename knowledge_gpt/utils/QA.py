@@ -6,18 +6,25 @@ import docx2txt
 import streamlit as st
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.docstore.document import Document
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import VectorStore
 from langchain.vectorstores.faiss import FAISS
 from openai.error import AuthenticationError
 from pypdf import PdfReader
 
-from knowledge_gpt.embeddings import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings
 from knowledge_gpt.prompts import STUFF_PROMPT
 
+from hashlib import md5
 
-@st.experimental_memo()
+
+def hash_func(doc: Document) -> str:
+    """Hash function for caching Documents"""
+    return md5(doc.page_content.encode("utf-8")).hexdigest()
+
+
+@st.cache_data()
 def parse_docx(file: BytesIO) -> str:
     text = docx2txt.process(file)
     # Remove multiple newlines
@@ -25,7 +32,7 @@ def parse_docx(file: BytesIO) -> str:
     return text
 
 
-@st.experimental_memo()
+@st.cache_data()
 def parse_pdf(file: BytesIO) -> List[str]:
     pdf = PdfReader(file)
     output = []
@@ -43,7 +50,7 @@ def parse_pdf(file: BytesIO) -> List[str]:
     return output
 
 
-@st.experimental_memo()
+@st.cache_data()
 def parse_txt(file: BytesIO) -> str:
     text = file.read().decode("utf-8")
     # Remove multiple newlines
@@ -51,7 +58,7 @@ def parse_txt(file: BytesIO) -> str:
     return text
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data()
 def text_to_docs(text: str | List[str]) -> List[Document]:
     """Converts a string or list of strings to a list of Documents
     with metadata."""
@@ -84,7 +91,20 @@ def text_to_docs(text: str | List[str]) -> List[Document]:
     return doc_chunks
 
 
-@st.cache(allow_output_mutation=True, show_spinner=False)
+@st.cache_data()
+def parse_file(file: BytesIO) -> str | List[str]:
+    """Parses a file and returns a list of Documents."""
+    if file.name.endswith(".pdf"):
+        return parse_pdf(file)
+    elif file.name.endswith(".docx"):
+        return parse_docx(file)
+    elif file.name.endswith(".txt"):
+        return parse_txt(file)
+    else:
+        raise ValueError("File type not supported!")
+
+
+@st.cache_data(show_spinner=False, hash_funcs={Document: hash_func})
 def embed_docs(docs: List[Document]) -> VectorStore:
     """Embeds a list of Documents and returns a FAISS index"""
 
@@ -96,48 +116,34 @@ def embed_docs(docs: List[Document]) -> VectorStore:
     else:
         # Embed the chunks
         embeddings = OpenAIEmbeddings(
-            openai_api_key=st.session_state.get("OPENAI_API_KEY")
+            openai_api_key=st.session_state.get("OPENAI_API_KEY"),
         )  # type: ignore
+
         index = FAISS.from_documents(docs, embeddings)
 
         return index
 
 
-@st.cache(allow_output_mutation=True)
-def search_docs(index: VectorStore, query: str) -> List[Document]:
-    """Searches a FAISS index for similar chunks to the query
-    and returns a list of Documents."""
-
-    # Search for similar chunks
-    docs = index.similarity_search(query, k=5)
-    return docs
-
-
-@st.cache(allow_output_mutation=True)
+@st.cache_data(show_spinner=False, hash_funcs={Document: hash_func})
 def get_answer(docs: List[Document], query: str) -> Dict[str, Any]:
     """Gets an answer to a question from a list of Documents."""
 
     # Get the answer
-
     chain = load_qa_with_sources_chain(
-        OpenAI(
+        ChatOpenAI(
             temperature=0, openai_api_key=st.session_state.get("OPENAI_API_KEY")
         ),  # type: ignore
         chain_type="stuff",
         prompt=STUFF_PROMPT,
     )
 
-    # Cohere doesn't work very well as of now.
-    # chain = load_qa_with_sources_chain(
-    #     Cohere(temperature=0), chain_type="stuff", prompt=STUFF_PROMPT  # type: ignore
-    # )
     answer = chain(
         {"input_documents": docs, "question": query}, return_only_outputs=True
     )
     return answer
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data(show_spinner=False, hash_funcs={Document: hash_func})
 def get_sources(answer: Dict[str, Any], docs: List[Document]) -> List[Document]:
     """Gets the source documents for an answer."""
 
@@ -150,11 +156,3 @@ def get_sources(answer: Dict[str, Any], docs: List[Document]) -> List[Document]:
             source_docs.append(doc)
 
     return source_docs
-
-
-def wrap_text_in_html(text: str | List[str]) -> str:
-    """Wraps each text block separated by newlines in <p> tags"""
-    if isinstance(text, list):
-        # Add horizontal rules between pages
-        text = "\n<hr/>\n".join(text)
-    return "".join([f"<p>{line}</p>" for line in text.split("\n")])
